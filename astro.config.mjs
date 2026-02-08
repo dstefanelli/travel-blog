@@ -8,5 +8,4 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
 	site: import.meta.env.VITE_BASE_URL,
 	integrations: [mdx(), sitemap()],
-	trailingSlash: 'always'
 });

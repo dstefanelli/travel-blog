@@ -1,0 +1,117 @@
+---
+import type { PostEntity, RichTextBlock } from "../../types";
+import { apiGet } from "../../lib/services";
+import BlogPost from "../../layouts/BlogPost.astro";
+import GallerySlider from "../../components/GallerySlider.astro";
+import { marked } from "marked";
+
+export async function getStaticPaths() {
+  const { data } = await apiGet<PostEntity[]>("/api/posts", {
+    "pagination[pageSize]": "1000",
+    "fields[0]": "slug",
+  });
+
+  return data.map((p) => ({
+    params: { slug: p.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+if (!slug) throw new Error("Slug parameter is required");
+
+const { data } = await apiGet<PostEntity[]>("/api/posts", {
+  "filters[slug][$eq]": slug,
+  "pagination[pageSize]": "1",
+  populate: "*",
+});
+
+const post = data[0];
+if (!post) throw new Error(`Post not found for slug: ${slug}`);
+
+const markdownHtml = post.markdown ? marked.parse(post.markdown) : null;
+const richTextHtml =
+  !markdownHtml && post.content
+    ? Array.isArray(post.content)
+      ? richTextToHtml(post.content)
+      : post.content
+    : null;
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function inlineMarksToHtml(node: RichTextBlock) {
+  const raw = node.text ?? "";
+  let html = escapeHtml(raw);
+
+  if (node.code) html = `<code>${html}</code>`;
+  if (node.bold) html = `<strong>${html}</strong>`;
+  if (node.italic) html = `<em>${html}</em>`;
+  if (node.underline) html = `<u>${html}</u>`;
+  if (node.strikethrough) html = `<s>${html}</s>`;
+  if (node.type === "link" && node.url) {
+    const safeUrl = escapeHtml(node.url);
+    html = `<a href="${safeUrl}" rel="noopener noreferrer">${html}</a>`;
+  }
+
+  return html;
+}
+
+function richTextToHtml(blocks: RichTextBlock[]) {
+  return blocks
+    .map((block) => {
+      const children = block.children ?? [];
+      const text = children.map(inlineMarksToHtml).join("");
+
+      switch (block.type) {
+        case "heading": {
+          const level = Math.min(Math.max(block.level ?? 2, 1), 6);
+          return `<h${level}>${text}</h${level}>`;
+        }
+        case "list": {
+          const tag = block.format === "ordered" ? "ol" : "ul";
+          const items = children
+            .map((child) => {
+              const liText = (child.children ?? [])
+                .map(inlineMarksToHtml)
+                .join("");
+              return `<li>${liText}</li>`;
+            })
+            .join("");
+          return `<${tag}>${items}</${tag}>`;
+        }
+        case "quote":
+          return `<blockquote>${text}</blockquote>`;
+        case "code":
+          return `<pre><code>${escapeHtml(
+            block.text ?? children.map((c) => c.text ?? "").join(""),
+          )}</code></pre>`;
+        case "paragraph":
+        default:
+          return text.trim() ? `<p>${text}</p>` : "";
+      }
+    })
+    .filter(Boolean)
+    .join("");
+}
+---
+
+<BlogPost {...post} locale="es-ES">
+  {
+    markdownHtml ? (
+      <div set:html={markdownHtml} />
+    ) : richTextHtml ? (
+      <div set:html={richTextHtml} />
+    ) : post.excerpt ? (
+      <p>
+        <em>{post.excerpt}</em>
+      </p>
+    ) : null
+  }
+  <GallerySlider gallery={post.gallery} title={post.title} />
+</BlogPost>

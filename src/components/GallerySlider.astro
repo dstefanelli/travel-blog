@@ -1,0 +1,79 @@
+---
+import type { ContentMediaCover } from "../types";
+import { API_URL } from "../consts";
+
+type Props = {
+  gallery?: ContentMediaCover[] | null;
+  title?: string;
+};
+
+const { gallery = [], title = "" } = Astro.props;
+
+const mediaUrl = (path?: string) => {
+  if (!path) return undefined;
+  return new URL(path, API_URL).toString();
+};
+
+const images = (gallery ?? [])
+  .map((image) => ({
+    url:
+      mediaUrl(image.formats?.large?.url) ??
+      mediaUrl(image.formats?.medium?.url) ??
+      mediaUrl(image.formats?.small?.url) ??
+      mediaUrl(image.url),
+    alt: image.alternativeText || title,
+  }))
+  .filter((item) => item.url);
+---
+
+{
+  images.length > 0 && (
+    <section class="gallery-slider" aria-label="Galería">
+      <swiper-container
+        slides-per-view="1"
+        space-between="12"
+        pagination="true"
+        navigation="true"
+        zoom="true"
+        loop="true"
+        centered-slides="true"
+      >
+        {images.map((img) => (
+          <swiper-slide>
+            <div class="swiper-zoom-container">
+              <img src={img.url} alt={img.alt} />
+            </div>
+          </swiper-slide>
+        ))}
+      </swiper-container>
+    </section>
+  )
+}
+
+<script>
+  import { register } from "swiper/element/bundle";
+  register();
+</script>
+
+<style>
+  .gallery-slider {
+    width: min(980px, calc(100% - 2em));
+    margin: 1.5em auto 0;
+    padding: 0 1em;
+  }
+  .gallery-slider :global(swiper-container) {
+    width: 100%;
+    padding-bottom: 24px;
+  }
+  .gallery-slider :global(swiper-slide) {
+    display: grid;
+  }
+  .gallery-slider :global(swiper-slide img) {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: var(--box-shadow);
+  }
+</style>

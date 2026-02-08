@@ -1,0 +1,94 @@
+---
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+
+type Props = {
+  title: string;
+  description?: string;
+  image?: ImageMetadata | string | null;
+  locale?: string;
+};
+
+const { title, description = "", image, locale = "es-ES" } = Astro.props;
+const isLocalImage = image && typeof image !== "string";
+---
+
+<html lang={locale}>
+  <head>
+    <BaseHead title={title} description={description} />
+    <style>
+      main {
+        width: calc(100% - 2em);
+        max-width: 100%;
+        margin: 0;
+      }
+      .hero-image {
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 1em;
+      }
+      .hero-image img {
+        display: block;
+        width: min(1020px, 100%);
+        height: auto;
+        margin: 0 auto;
+        border-radius: 12px;
+        box-shadow: var(--box-shadow);
+      }
+      .prose {
+        width: 720px;
+        max-width: calc(100% - 2em);
+        margin: auto;
+        padding: 1em;
+        color: rgb(var(--gray-dark));
+      }
+      .title {
+        margin-bottom: 1em;
+        padding: 1em 0;
+        text-align: center;
+        line-height: 1.1;
+      }
+      .title h1 {
+        margin: 0 0 0.5em 0;
+      }
+      .description {
+        color: rgb(var(--gray));
+        font-style: italic;
+        margin: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <Header />
+    <main>
+      <article>
+        {
+          image && (
+            <div class="hero-image">
+              {
+                isLocalImage ? (
+                  <Image src={image as ImageMetadata} alt={title} />
+                ) : (
+                  <img src={image as string} alt={title} />
+                )
+              }
+            </div>
+          )
+        }
+        <div class="prose">
+          <div class="title">
+            <h1>{title}</h1>
+            {description && <p class="description">{description}</p>}
+            <hr />
+          </div>
+          <slot />
+        </div>
+      </article>
+    </main>
+    <Footer />
+  </body>
+</html>
