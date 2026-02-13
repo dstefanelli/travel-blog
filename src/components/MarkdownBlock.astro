@@ -1,0 +1,12 @@
+---
+import { marked } from "marked";
+
+type Props = {
+  body?: string | null;
+};
+
+const { body } = Astro.props;
+const html = body ? marked.parse(body) : null;
+---
+
+{html ? <div class="markdown-block" set:html={html} /> : null}

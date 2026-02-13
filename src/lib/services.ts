@@ -4,11 +4,14 @@ type APIResponse<T> = {
   error?: { status: number; name: string; message: string; details?: any };
 };
 
-const VITE_API_URL = import.meta.env.VITE_API_URL as string;
-const VITE_API_TOKEN = import.meta.env.VITE_API_TOKEN as string;
+const VITE_API_URL =
+  import.meta.env.VITE_API_URL || (process.env.VITE_API_URL as string);
+const API_TOKEN =
+  (import.meta.env.API_TOKEN as string | undefined) ||
+  (process.env.API_TOKEN as string | undefined);
 
 if (!VITE_API_URL) throw new Error("Missing VITE_API_URL in .env");
-if (!VITE_API_TOKEN) throw new Error("Missing VITE_API_TOKEN in .env");
+if (!API_TOKEN) throw new Error("Missing API_TOKEN in .env");
 
 function buildUrl(path: string, params?: Record<string, string>) {
   const url = new URL(path, VITE_API_URL);
@@ -20,7 +23,7 @@ function buildUrl(path: string, params?: Record<string, string>) {
 export async function apiGet<T>(path: string, params?: Record<string, string>) {
   const res = await fetch(buildUrl(path, params), {
     headers: {
-      Authorization: `Bearer ${VITE_API_TOKEN}`,
+      Authorization: `Bearer ${API_TOKEN}`,
     },
   });
 

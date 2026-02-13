@@ -3,10 +3,13 @@ export type PostEntity = {
   title: string;
   slug: string;
   excerpt?: string | null;
+  location?: string | null;
+  tags?: string[] | null;
   content?: string | RichTextBlock[] | null;
   markdown?: string | null;
   createdAt: string;
   travelDate?: string | null;
+  contenZone?: ContentZoneBlock[] | null;
   coverImage: ContentMediaCover;
   gallery?: ContentMediaCover[] | null;
 };
@@ -27,6 +30,7 @@ export type RichTextBlock = {
 
 export type ContentMediaCover = {
   id: number;
+  name?: string;
   alternativeText?: string | null;
   caption?: string | null;
   url?: string;
@@ -37,3 +41,37 @@ export type ContentMediaCover = {
     large?: { url: string };
   };
 };
+
+export type RichTextZoneBlock = {
+  __component: "sections.rich-text";
+  id: number;
+  body?: RichTextBlock[] | null;
+};
+
+export type SliderZoneBlock = {
+  __component: "sections.slider";
+  id: number;
+  caption?: string | null;
+  ratio?: string | null;
+  autoplay?: boolean | null;
+  images?: ContentMediaCover[] | null;
+};
+
+export type PictureZoneBlock = {
+  __component: "sections.picture";
+  id: number;
+  alt?: string | null;
+  image?: ContentMediaCover | null;
+};
+
+export type MarkdownZoneBlock = {
+  __component: "sections.markdown";
+  id: number;
+  body?: string | null;
+};
+
+export type ContentZoneBlock =
+  | RichTextZoneBlock
+  | SliderZoneBlock
+  | PictureZoneBlock
+  | MarkdownZoneBlock;

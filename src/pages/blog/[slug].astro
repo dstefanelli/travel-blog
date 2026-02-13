@@ -1,20 +1,10 @@
 ---
-import type { PostEntity, RichTextBlock } from "../../types";
+import type { ContentZoneBlock, PostEntity, RichTextBlock } from "../../types";
 import { apiGet } from "../../lib/services";
 import BlogPost from "../../layouts/BlogPost.astro";
 import GallerySlider from "../../components/GallerySlider.astro";
-import { marked } from "marked";
-
-export async function getStaticPaths() {
-  const { data } = await apiGet<PostEntity[]>("/api/posts", {
-    "pagination[pageSize]": "1000",
-    "fields[0]": "slug",
-  });
-
-  return data.map((p) => ({
-    params: { slug: p.slug },
-  }));
-}
+import PictureBlock from "../../components/PictureBlock.astro";
+import MarkdownBlock from "../../components/MarkdownBlock.astro";
 
 const { slug } = Astro.params;
 if (!slug) throw new Error("Slug parameter is required");
@@ -22,15 +12,21 @@ if (!slug) throw new Error("Slug parameter is required");
 const { data } = await apiGet<PostEntity[]>("/api/posts", {
   "filters[slug][$eq]": slug,
   "pagination[pageSize]": "1",
-  populate: "*",
+  "populate[coverImage][populate]": "*",
+  "populate[contenZone][on][sections.rich-text][populate]": "*",
+  "populate[contenZone][on][sections.slider][populate][images][populate]": "*",
+  "populate[contenZone][on][sections.picture][populate][image][populate]": "*",
+  "populate[contenZone][on][sections.markdown][populate]": "*",
 });
 
 const post = data[0];
 if (!post) throw new Error(`Post not found for slug: ${slug}`);
 
-const markdownHtml = post.markdown ? marked.parse(post.markdown) : null;
+const zoneBlocks = (post.contenZone ?? []) as ContentZoneBlock[];
+const hasZoneBlocks = zoneBlocks.length > 0;
+
 const richTextHtml =
-  !markdownHtml && post.content
+  !hasZoneBlocks && post.content
     ? Array.isArray(post.content)
       ? richTextToHtml(post.content)
       : post.content
@@ -103,8 +99,36 @@ function richTextToHtml(blocks: RichTextBlock[]) {
 
 <BlogPost {...post} locale="es-ES">
   {
-    markdownHtml ? (
-      <div set:html={markdownHtml} />
+    hasZoneBlocks ? (
+      zoneBlocks.map((block) => {
+        switch (block.__component) {
+          case "sections.rich-text":
+            return <div set:html={richTextToHtml(block.body ?? [])} />;
+          case "sections.slider":
+            return (
+              <GallerySlider
+                images={block.images}
+                title={post.title}
+                caption={block.caption}
+                autoplay={block.autoplay}
+              />
+            );
+          case "sections.picture":
+            return (
+              <PictureBlock
+                image={block.image}
+                alt={block.alt}
+                fallbackAlt={post.title}
+              />
+            );
+          case "sections.markdown":
+            return <MarkdownBlock body={block.body} />;
+          default:
+            return null;
+        }
+      })
+    ) : post.markdown ? (
+      <MarkdownBlock body={post.markdown} />
     ) : richTextHtml ? (
       <div set:html={richTextHtml} />
     ) : post.excerpt ? (
@@ -113,5 +137,10 @@ function richTextToHtml(blocks: RichTextBlock[]) {
       </p>
     ) : null
   }
-  <GallerySlider gallery={post.gallery} title={post.title} />
+
+  {
+    !hasZoneBlocks && post.gallery ? (
+      <GallerySlider gallery={post.gallery} title={post.title} />
+    ) : null
+  }
 </BlogPost>

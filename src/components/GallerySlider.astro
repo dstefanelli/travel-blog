@@ -1,20 +1,24 @@
 ---
 import type { ContentMediaCover } from "../types";
-import { API_URL } from "../consts";
+import { mediaUrl } from "../consts";
 
 type Props = {
   gallery?: ContentMediaCover[] | null;
+  images?: ContentMediaCover[] | null;
   title?: string;
+  caption?: string | null;
+  autoplay?: boolean | null;
 };
 
-const { gallery = [], title = "" } = Astro.props;
+const {
+  gallery = [],
+  images = [],
+  title = "",
+  caption = null,
+  autoplay = null,
+} = Astro.props;
 
-const mediaUrl = (path?: string) => {
-  if (!path) return undefined;
-  return new URL(path, API_URL).toString();
-};
-
-const images = (gallery ?? [])
+const sliderImages = [...(images ?? []), ...(gallery ?? [])]
   .map((image) => ({
     url:
       mediaUrl(image.formats?.large?.url) ??
@@ -27,9 +31,11 @@ const images = (gallery ?? [])
 ---
 
 {
-  images.length > 0 && (
+  sliderImages.length > 0 && (
     <section class="gallery-slider" aria-label="Galería">
       <swiper-container
+        class="js-gallery-swiper"
+        init="false"
         slides-per-view="1"
         space-between="12"
         pagination="true"
@@ -37,8 +43,9 @@ const images = (gallery ?? [])
         zoom="true"
         loop="true"
         centered-slides="true"
+        autoplay={autoplay ? "true" : undefined}
       >
-        {images.map((img) => (
+        {sliderImages.map((img) => (
           <swiper-slide>
             <div class="swiper-zoom-container">
               <img src={img.url} alt={img.alt} />
@@ -46,28 +53,55 @@ const images = (gallery ?? [])
           </swiper-slide>
         ))}
       </swiper-container>
+      {caption ? <p class="caption">{caption}</p> : null}
     </section>
   )
 }
 
 <script>
   import { register } from "swiper/element/bundle";
-  register();
+
+  if (!customElements.get("swiper-container")) {
+    register();
+  }
+
+  type SwiperContainerElement = Element & {
+    swiper?: unknown;
+    initialize?: () => void;
+  };
+
+  document
+    .querySelectorAll("swiper-container.js-gallery-swiper")
+    .forEach((el) => {
+      const swiperEl = el as SwiperContainerElement;
+      if (!swiperEl.swiper) {
+        swiperEl.initialize?.();
+      }
+    });
 </script>
 
 <style>
   .gallery-slider {
+    --slider-accent: rgb(var(--accent));
+    --slider-accent-soft: color-mix(in srgb, var(--slider-accent) 30%, white);
     width: min(980px, calc(100% - 2em));
     margin: 1.5em auto 0;
     padding: 0 1em;
   }
+
   .gallery-slider :global(swiper-container) {
+    --swiper-navigation-color: var(--slider-accent);
+    --swiper-pagination-color: var(--slider-accent);
+    --swiper-pagination-bullet-inactive-color: var(--slider-accent-soft);
+    --swiper-pagination-bullet-inactive-opacity: 1;
     width: 100%;
     padding-bottom: 24px;
   }
+
   .gallery-slider :global(swiper-slide) {
     display: grid;
   }
+
   .gallery-slider :global(swiper-slide img) {
     width: 100%;
     height: 100%;
@@ -75,5 +109,12 @@ const images = (gallery ?? [])
     object-fit: cover;
     border-radius: 12px;
     box-shadow: var(--box-shadow);
+  }
+
+  .caption {
+    margin: 0.35rem 0 0;
+    color: rgb(var(--gray));
+    font-size: 0.95rem;
+    text-align: center;
   }
 </style>

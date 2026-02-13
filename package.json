@@ -2,14 +2,15 @@
   "name": "travel-blog",
   "type": "module",
   "version": "0.0.1",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
-    "dev": "astro dev --open",
+    "dev": "astro dev --host",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "start": "node ./dist/server/entry.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
+    "@astrojs/node": "^9.5.2",
     "@astrojs/rss": "^4.0.15",
     "@astrojs/sitemap": "^3.7.0",
     "astro": "^5.17.1",

@@ -1,5 +1,5 @@
 ---
-import { SITE_DESCRIPTION, SITE_TITLE, API_URL } from "../../consts";
+import { SITE_DESCRIPTION, SITE_TITLE, mediaUrl } from "../../consts";
 import type { PostEntity } from "../../types";
 import { Image } from "astro:assets";
 import { apiGet } from "../../lib/services";
@@ -13,14 +13,9 @@ const pageSize = 10;
 const { data, meta } = await apiGet<PostEntity[]>("/api/posts", {
   "pagination[page]": String(page),
   "pagination[pageSize]": String(pageSize),
-  "sort[0]": "createdAt:desc",
+  "sort[0]": "travelDate:desc",
   populate: "*",
 });
-
-const mediaUrl = (path?: string) => {
-  if (!path) return undefined;
-  return new URL(path, API_URL).toString();
-};
 
 const pageCount = meta?.pagination?.pageCount ?? 1;
 ---
@@ -93,10 +88,10 @@ const pageCount = meta?.pagination?.pageCount ?? 1;
           {
             data.map((p) => (
               <li>
-                <a href={`/blog/${p.slug}`}>
-                  {mediaUrl(p.coverImage?.formats?.small?.url) && (
+                <a href={`/blog/${p.slug}/`}>
+                  {mediaUrl(p.coverImage?.formats?.medium?.url) && (
                     <Image
-                      src={mediaUrl(p.coverImage?.formats?.small?.url)!}
+                      src={mediaUrl(p.coverImage?.formats?.medium?.url)!}
                       alt={p.coverImage?.alternativeText || p.title}
                       width={300}
                       height={200}
