@@ -6,9 +6,10 @@ import FormattedDate from "../components/FormattedDate.astro";
 import Header from "../components/Header.astro";
 import { mediaUrl } from "../consts";
 import type { PostEntity } from "../types";
+import type { AppLang } from "../lib/locale";
 
 type Props = PostEntity & {
-  locale?: string;
+  lang?: string;
 };
 
 const {
@@ -17,8 +18,10 @@ const {
   createdAt,
   travelDate,
   coverImage,
-  locale = "es-ES",
+  lang = "es-ES",
 } = Astro.props;
+
+const uiLang: AppLang = lang.startsWith("de") ? "de" : "es";
 
 const heroUrl =
   mediaUrl(coverImage?.formats?.large?.url) ??
@@ -27,7 +30,7 @@ const heroUrl =
   mediaUrl(coverImage?.url);
 ---
 
-<html lang={locale}>
+<html lang={lang}>
   <head>
     <BaseHead title={title} description={excerpt ?? ""} />
     <style>
@@ -72,7 +75,7 @@ const heroUrl =
   </head>
 
   <body>
-    <Header />
+    <Header lang={uiLang} />
     <main>
       <article>
         <div class="hero-image">
@@ -96,7 +99,7 @@ const heroUrl =
                     Fecha del viaje{" "}
                     <FormattedDate
                       date={new Date(travelDate)}
-                      locale={locale}
+                      locale={lang}
                     />
                   </div>
                 )

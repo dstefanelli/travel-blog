@@ -1,0 +1,39 @@
+---
+import type { AppLang } from "../lib/locale";
+
+type Props = {
+  lang?: AppLang;
+};
+
+const { lang = "es" } = Astro.props;
+---
+
+<label class="language-switcher">
+  <span class="sr-only">Seleccionar idioma</span>
+  <select class="js-language-switcher" aria-label="Seleccionar idioma">
+    <option value="es" selected={lang === "es"}>ES</option>
+    <option value="de" selected={lang === "de"}>DE</option>
+  </select>
+</label>
+
+<script>
+  document.querySelectorAll<HTMLSelectElement>(".js-language-switcher").forEach((select) => {
+    select.addEventListener("change", () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", select.value);
+      window.location.href = url.toString();
+    });
+  });
+</script>
+
+<style>
+  .language-switcher select {
+    border: 1px solid rgb(var(--gray-light));
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    background: #fff;
+    color: rgb(var(--gray-dark));
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+</style>

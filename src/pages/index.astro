@@ -2,7 +2,10 @@
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
+import { resolveLang } from '../lib/locale';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const lang = resolveLang(Astro.url, Astro.request.headers.get('accept-language'));
 ---
 
 <!doctype html>
@@ -11,7 +14,7 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
-		<Header />
+		<Header lang={lang} />
 		<main>
 			<h1>🧑‍🚀 Hello, Astronaut!</h1>
 			<p>

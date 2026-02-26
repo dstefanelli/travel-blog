@@ -5,21 +5,32 @@ import BlogPost from "../../layouts/BlogPost.astro";
 import GallerySlider from "../../components/GallerySlider.astro";
 import PictureBlock from "../../components/PictureBlock.astro";
 import MarkdownBlock from "../../components/MarkdownBlock.astro";
+import { resolveLang, toDateLang } from "../../lib/locale";
 
 const { slug } = Astro.params;
 if (!slug) throw new Error("Slug parameter is required");
+const lang = resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
+const dateLang = toDateLang(lang);
 
-const { data } = await apiGet<PostEntity[]>("/api/posts", {
-  "filters[slug][$eq]": slug,
-  "pagination[pageSize]": "1",
-  "populate[coverImage][populate]": "*",
-  "populate[contenZone][on][sections.rich-text][populate]": "*",
-  "populate[contenZone][on][sections.slider][populate][images][populate]": "*",
-  "populate[contenZone][on][sections.picture][populate][image][populate]": "*",
-  "populate[contenZone][on][sections.markdown][populate]": "*",
-});
+const fetchPostByLang = (queryLang: "es" | "de") =>
+  apiGet<PostEntity[]>("/api/posts", {
+    "filters[slug][$eq]": slug,
+    "pagination[pageSize]": "1",
+    locale: queryLang,
+    "populate[coverImage][populate]": "*",
+    "populate[contenZone][on][sections.rich-text][populate]": "*",
+    "populate[contenZone][on][sections.slider][populate][images][populate]": "*",
+    "populate[contenZone][on][sections.picture][populate][image][populate]": "*",
+    "populate[contenZone][on][sections.markdown][populate]": "*",
+  });
 
-const post = data[0];
+let response = await fetchPostByLang(lang);
+let post = response.data[0];
+if (!post && lang !== "es") {
+  response = await fetchPostByLang("es");
+  post = response.data[0];
+}
+
 if (!post) throw new Error(`Post not found for slug: ${slug}`);
 
 const zoneBlocks = (post.contenZone ?? []) as ContentZoneBlock[];
@@ -97,7 +108,7 @@ function richTextToHtml(blocks: RichTextBlock[]) {
 }
 ---
 
-<BlogPost {...post} locale="es-ES">
+<BlogPost {...post} lang={dateLang}>
   {
     hasZoneBlocks ? (
       zoneBlocks.map((block) => {
