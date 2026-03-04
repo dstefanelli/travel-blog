@@ -26,3 +26,5 @@ pnpm-debug.log*
 # docker tests
 docker-compose.yaml
 nginx.conf
+
+@eaDir/
