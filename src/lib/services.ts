@@ -4,11 +4,20 @@ type APIResponse<T> = {
   error?: { status: number; name: string; message: string; details?: any };
 };
 
+function cleanEnv(value?: string) {
+  return value?.trim().replace(/^['"]|['"]$/g, "");
+}
+
 const VITE_API_URL =
-  import.meta.env.VITE_API_URL || (process.env.VITE_API_URL as string);
+  cleanEnv(import.meta.env.VITE_API_URL as string | undefined) ||
+  cleanEnv(process.env.VITE_API_URL as string | undefined);
 const API_TOKEN =
-  (import.meta.env.API_TOKEN as string | undefined) ||
-  (process.env.API_TOKEN as string | undefined);
+  cleanEnv(import.meta.env.API_TOKEN as string | undefined) ||
+  cleanEnv(process.env.API_TOKEN as string | undefined);
+
+if (!import.meta.env.SSR) {
+  throw new Error("apiGet can only be used on the server");
+}
 
 if (!VITE_API_URL) throw new Error("Missing VITE_API_URL in .env");
 if (!API_TOKEN) throw new Error("Missing API_TOKEN in .env");
