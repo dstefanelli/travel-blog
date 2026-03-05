@@ -4,6 +4,14 @@ type APIResponse<T> = {
   error?: { status: number; name: string; message: string; details?: any };
 };
 
+// Ensure local `.env` values are available in Node runtime (dev/server).
+// In containers, runtime env vars still take precedence.
+(
+  process as NodeJS.Process & {
+    loadEnvFile?: (path?: string) => void;
+  }
+).loadEnvFile?.();
+
 function cleanEnv(value?: string) {
   return value?.trim().replace(/^['"]|['"]$/g, "");
 }
@@ -11,9 +19,7 @@ function cleanEnv(value?: string) {
 const VITE_API_URL =
   cleanEnv(import.meta.env.VITE_API_URL as string | undefined) ||
   cleanEnv(process.env.VITE_API_URL as string | undefined);
-const API_TOKEN =
-  cleanEnv(import.meta.env.API_TOKEN as string | undefined) ||
-  cleanEnv(process.env.API_TOKEN as string | undefined);
+const API_TOKEN = cleanEnv(process.env.API_TOKEN as string | undefined);
 
 if (!import.meta.env.SSR) {
   throw new Error("apiGet can only be used on the server");
@@ -30,16 +36,41 @@ function buildUrl(path: string, params?: Record<string, string>) {
 }
 
 export async function apiGet<T>(path: string, params?: Record<string, string>) {
-  const res = await fetch(buildUrl(path, params), {
-    headers: {
-      Authorization: `Bearer ${API_TOKEN}`,
-    },
-  });
+  const url = buildUrl(path, params);
+  let res: Response;
 
-  const json = (await res.json()) as APIResponse<T>;
+  try {
+    res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_TOKEN}`,
+      },
+    });
+  } catch (error) {
+    const err = error as Error & { cause?: unknown };
+    const cause =
+      err.cause instanceof Error
+        ? `${err.cause.name}: ${err.cause.message}`
+        : String(err.cause ?? "");
+    throw new Error(
+      `[apiGet] Network error calling ${url}. ${err.message}${cause ? ` | cause: ${cause}` : ""}`,
+    );
+  }
+
+  let json: APIResponse<T>;
+  try {
+    json = (await res.json()) as APIResponse<T>;
+  } catch {
+    const rawBody = await res.text().catch(() => "");
+    const preview = rawBody.slice(0, 300);
+    throw new Error(
+      `[apiGet] Invalid JSON from ${url}. HTTP ${res.status}. Body: ${preview}`,
+    );
+  }
 
   if (!res.ok) {
-    const msg = json?.error?.message ?? `API request failed (${res.status})`;
+    const msg =
+      json?.error?.message ??
+      `[apiGet] API request failed for ${url} (HTTP ${res.status})`;
     throw new Error(msg);
   }
 
