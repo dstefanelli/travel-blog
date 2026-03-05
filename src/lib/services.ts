@@ -6,11 +6,15 @@ type APIResponse<T> = {
 
 // Ensure local `.env` values are available in Node runtime (dev/server).
 // In containers, runtime env vars still take precedence.
-(
-  process as NodeJS.Process & {
-    loadEnvFile?: (path?: string) => void;
-  }
-).loadEnvFile?.();
+try {
+  (
+    process as NodeJS.Process & {
+      loadEnvFile?: (path?: string) => void;
+    }
+  ).loadEnvFile?.();
+} catch {
+  // `.env` is optional at runtime (e.g. Docker/NAS with env vars only).
+}
 
 function cleanEnv(value?: string) {
   return value?.trim().replace(/^['"]|['"]$/g, "");
