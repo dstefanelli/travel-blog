@@ -1,0 +1,42 @@
+services:
+  astro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_BASE_URL: ${VITE_BASE_URL:-http://localhost:4321}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:1337}
+    container_name: astro
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4321
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - travel-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: travel_nginx
+    depends_on:
+      astro:
+        condition: service_healthy
+    ports:
+      - "8088:80"
+    volumes:
+      - ../../nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    networks:
+      - travel-network
+
+networks:
+  travel-network:
+    driver: bridge
