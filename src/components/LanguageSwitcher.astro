@@ -17,10 +17,20 @@ const { lang = "es" } = Astro.props;
 </label>
 
 <script>
+  const ROUTE_LANGS = new Set(["es", "de"]);
+
   document.querySelectorAll<HTMLSelectElement>(".js-language-switcher").forEach((select) => {
     select.addEventListener("change", () => {
       const url = new URL(window.location.href);
-      url.searchParams.set("lang", select.value);
+      const segments = url.pathname.split("/").filter(Boolean);
+
+      if (segments[0] && ROUTE_LANGS.has(segments[0])) {
+        segments[0] = select.value;
+      } else {
+        segments.unshift(select.value);
+      }
+
+      url.pathname = `/${segments.join("/")}/`.replace(/\/+/g, "/");
       window.location.href = url.toString();
     });
   });

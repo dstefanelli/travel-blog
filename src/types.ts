@@ -1,5 +1,6 @@
 export type PostEntity = {
   id: number;
+  documentId?: string;
   title: string;
   slug: string;
   excerpt?: string | null;

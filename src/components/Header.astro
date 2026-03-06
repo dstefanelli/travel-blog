@@ -1,7 +1,7 @@
 ---
 import { SITE_TITLE } from "../consts";
 import type { AppLang } from "../lib/locale";
-import { resolveLang } from "../lib/locale";
+import { resolveLang, withRouteLangPrefix } from "../lib/locale";
 import HeaderLink from "./HeaderLink.astro";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
 
@@ -12,7 +12,7 @@ type Props = {
 const { lang: providedLang } = Astro.props;
 const lang =
   providedLang ?? resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
-const withLang = (path: string) => `${path}?lang=${lang}`;
+const withLang = (path: string) => withRouteLangPrefix(path, lang);
 ---
 
 <header>

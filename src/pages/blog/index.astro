@@ -7,17 +7,17 @@ import BaseHead from "../../components/BaseHead.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
-import { resolveLang } from "../../lib/locale";
+import { resolveLang, toCmsLocale, withRouteLangPrefix } from "../../lib/locale";
 
 const page = Number(Astro.url.searchParams.get("page") ?? "1");
 const lang = resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
 const pageSize = 10;
-const fetchPostsByLang = (queryLang: "es" | "de") =>
+const fetchPostsByLang = (queryLang: "es" | "de" | "en") =>
   apiGet<PostEntity[]>("/api/posts", {
     "pagination[page]": String(page),
     "pagination[pageSize]": String(pageSize),
     "sort[0]": "travelDate:desc",
-    locale: queryLang,
+    locale: toCmsLocale(queryLang),
     populate: "*",
   });
 
@@ -99,7 +99,11 @@ const pageCount = meta?.pagination?.pageCount ?? 1;
           {
             data.map((p) => (
               <li>
-                <a href={`/blog/${p.slug}/?lang=${lang}`}>
+                <a
+                  href={`${withRouteLangPrefix(`/blog/${p.slug}/`, lang)}${
+                    p.documentId ? `?doc=${encodeURIComponent(p.documentId)}` : ""
+                  }`}
+                >
                   {mediaUrl(p.coverImage?.formats?.medium?.url) && (
                     <Image
                       src={mediaUrl(p.coverImage?.formats?.medium?.url)!}
@@ -128,7 +132,7 @@ const pageCount = meta?.pagination?.pageCount ?? 1;
         <nav style="display:flex; gap:12px; margin-top:24px;">
           {
             page > 1 ? (
-              <a href={`/blog?page=${page - 1}&lang=${lang}`}>← Prev</a>
+              <a href={`${withRouteLangPrefix("/blog/", lang)}?page=${page - 1}`}>← Prev</a>
             ) : (
               <span />
             )
@@ -136,7 +140,7 @@ const pageCount = meta?.pagination?.pageCount ?? 1;
           <span>Página {page} / {pageCount}</span>
           {
             page < pageCount ? (
-              <a href={`/blog?page=${page + 1}&lang=${lang}`}>Next →</a>
+              <a href={`${withRouteLangPrefix("/blog/", lang)}?page=${page + 1}`}>Next →</a>
             ) : (
               <span />
             )

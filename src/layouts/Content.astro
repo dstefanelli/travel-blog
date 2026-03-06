@@ -4,7 +4,7 @@ import { Image } from "astro:assets";
 import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
-import type { AppLang } from "../lib/locale";
+import { normalizeLang, type AppLang } from "../lib/locale";
 
 type Props = {
   title: string;
@@ -15,7 +15,7 @@ type Props = {
 
 const { title, description = "", image, lang = "es-ES" } = Astro.props;
 const isLocalImage = image && typeof image !== "string";
-const uiLang: AppLang = lang.startsWith("de") ? "de" : "es";
+const uiLang: AppLang = normalizeLang(lang) ?? "es";
 ---
 
 <html lang={lang}>

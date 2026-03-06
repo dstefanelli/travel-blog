@@ -5,18 +5,19 @@ import BlogPost from "../../layouts/BlogPost.astro";
 import GallerySlider from "../../components/GallerySlider.astro";
 import PictureBlock from "../../components/PictureBlock.astro";
 import MarkdownBlock from "../../components/MarkdownBlock.astro";
-import { resolveLang, toDateLang } from "../../lib/locale";
+import { resolveLang, toCmsLocale, toDateLang } from "../../lib/locale";
 
 const { slug } = Astro.params;
 if (!slug) throw new Error("Slug parameter is required");
 const lang = resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
 const dateLang = toDateLang(lang);
+const docParam = Astro.url.searchParams.get("doc") ?? undefined;
 
-const fetchPostByLang = (queryLang: "es" | "de") =>
+const fetchPostByLang = (queryLang: "es" | "de" | "en") =>
   apiGet<PostEntity[]>("/api/posts", {
     "filters[slug][$eq]": slug,
     "pagination[pageSize]": "1",
-    locale: queryLang,
+    locale: toCmsLocale(queryLang),
     "populate[coverImage][populate]": "*",
     "populate[contenZone][on][sections.rich-text][populate]": "*",
     "populate[contenZone][on][sections.slider][populate][images][populate]": "*",
@@ -24,11 +25,38 @@ const fetchPostByLang = (queryLang: "es" | "de") =>
     "populate[contenZone][on][sections.markdown][populate]": "*",
   });
 
-let response = await fetchPostByLang(lang);
-let post = response.data[0];
-if (!post && lang !== "es") {
-  response = await fetchPostByLang("es");
+const fetchPostByDocumentId = (documentId: string, queryLang: "es" | "de" | "en") =>
+  apiGet<PostEntity[]>("/api/posts", {
+    "filters[documentId][$eq]": documentId,
+    "pagination[pageSize]": "1",
+    locale: toCmsLocale(queryLang),
+    "populate[coverImage][populate]": "*",
+    "populate[contenZone][on][sections.rich-text][populate]": "*",
+    "populate[contenZone][on][sections.slider][populate][images][populate]": "*",
+    "populate[contenZone][on][sections.picture][populate][image][populate]": "*",
+    "populate[contenZone][on][sections.markdown][populate]": "*",
+  });
+
+let post: PostEntity | undefined;
+
+if (docParam) {
+  let response = await fetchPostByDocumentId(docParam, lang);
   post = response.data[0];
+
+  if (!post && lang !== "es") {
+    response = await fetchPostByDocumentId(docParam, "es");
+    post = response.data[0];
+  }
+}
+
+if (!post) {
+  let response = await fetchPostByLang(lang);
+  post = response.data[0];
+
+  if (!post && lang !== "es") {
+    response = await fetchPostByLang("es");
+    post = response.data[0];
+  }
 }
 
 if (!post) throw new Error(`Post not found for slug: ${slug}`);

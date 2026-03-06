@@ -6,7 +6,7 @@ import FormattedDate from "../components/FormattedDate.astro";
 import Header from "../components/Header.astro";
 import { mediaUrl } from "../consts";
 import type { PostEntity } from "../types";
-import type { AppLang } from "../lib/locale";
+import { normalizeLang, type AppLang } from "../lib/locale";
 
 type Props = PostEntity & {
   lang?: string;
@@ -21,7 +21,7 @@ const {
   lang = "es-ES",
 } = Astro.props;
 
-const uiLang: AppLang = lang.startsWith("de") ? "de" : "es";
+const uiLang: AppLang = normalizeLang(lang) ?? "es";
 
 const heroUrl =
   mediaUrl(coverImage?.formats?.large?.url) ??
