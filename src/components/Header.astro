@@ -16,58 +16,166 @@ const withLang = (path: string) => withRouteLangPrefix(path, lang);
 ---
 
 <header>
-  <nav>
-    <h2><a href={withLang("/")}>{SITE_TITLE}</a></h2>
-    <div class="internal-links">
-      <HeaderLink href={withLang("/")}>Home</HeaderLink>
-      <HeaderLink href={withLang("/blog/")}>Blog</HeaderLink>
+  <nav class="site-nav" aria-label="Principal">
+    <h2 class="brand"><a href={withLang("/")}>{SITE_TITLE}</a></h2>
+
+    <div class="desktop-links">
+      <HeaderLink class="nav-link" href={withLang("/")}>Home</HeaderLink>
+      <HeaderLink class="nav-link" href={withLang("/blog/")}>Blog</HeaderLink>
+      <div class="lang-slot">
+        <LanguageSwitcher lang={lang} />
+      </div>
+    </div>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      aria-label="Abrir menú de navegación"
+    >
+      <span aria-hidden="true">Menu</span>
+    </button>
+  </nav>
+
+  <div id="mobile-menu" class="mobile-menu" hidden>
+    <HeaderLink class="nav-link" href={withLang("/")}>Home</HeaderLink>
+    <HeaderLink class="nav-link" href={withLang("/blog/")}>Blog</HeaderLink>
+    <div class="lang-slot">
       <LanguageSwitcher lang={lang} />
     </div>
-  </nav>
+  </div>
 </header>
+
+<script>
+  const menuButton = document.querySelector<HTMLButtonElement>(".menu-toggle");
+  const mobileMenu = document.querySelector<HTMLElement>("#mobile-menu");
+  const breakpoint = window.matchMedia("(min-width: 721px)");
+
+  const closeMenu = () => {
+    if (!menuButton || !mobileMenu) return;
+    menuButton.setAttribute("aria-expanded", "false");
+    menuButton.setAttribute("aria-label", "Abrir menú de navegación");
+    mobileMenu.hidden = true;
+  };
+
+  menuButton?.addEventListener("click", () => {
+    if (!mobileMenu || !menuButton) return;
+    const isOpen = menuButton.getAttribute("aria-expanded") === "true";
+    menuButton.setAttribute("aria-expanded", String(!isOpen));
+    menuButton.setAttribute(
+      "aria-label",
+      isOpen ? "Abrir menú de navegación" : "Cerrar menú de navegación",
+    );
+    mobileMenu.hidden = isOpen;
+  });
+
+  mobileMenu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", closeMenu);
+  });
+
+  breakpoint.addEventListener("change", (event) => {
+    if (event.matches) closeMenu();
+  });
+</script>
+
 <style>
   header {
     margin: 0;
-    padding: 0 1em;
+    padding: 0.4rem 1rem;
     background: white;
     box-shadow: 0 2px 8px rgba(var(--black), 5%);
   }
-  h2 {
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.5rem;
+  }
+
+  .brand {
     margin: 0;
     font-size: 1em;
   }
 
-  h2 a,
-  h2 a.active {
+  .brand a,
+  .brand a.active {
     text-decoration: none;
+    color: rgb(var(--gray-dark));
   }
-  nav {
+
+  .desktop-links {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.5rem;
   }
-  .internal-links {
+
+  .lang-slot {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
   }
-  nav a {
-    padding: 1em 0.5em;
-    color: var(--black);
-    border-bottom: 4px solid transparent;
+
+  .nav-link {
+    padding: 0.6rem 0.7rem;
+    color: rgb(var(--gray-dark));
+    border-bottom: 3px solid transparent;
     text-decoration: none;
+    line-height: 1;
   }
-  nav a.active {
-    text-decoration: none;
+
+  .nav-link.active {
     border-bottom-color: var(--accent);
+    text-decoration: none;
   }
-  .social-links,
-  .social-links a {
-    display: flex;
+
+  .menu-toggle {
+    display: none;
+    border: 1px solid rgb(var(--gray-light));
+    border-radius: 999px;
+    background: #fff;
+    color: rgb(var(--gray-dark));
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.55rem 0.85rem;
+    cursor: pointer;
   }
+
+  .mobile-menu {
+    display: none;
+  }
+
   @media (max-width: 720px) {
-    .social-links {
+    header {
+      padding: 0.35rem 0.8rem;
+    }
+
+    .desktop-links {
       display: none;
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mobile-menu {
+      display: grid;
+      gap: 0.5rem;
+      padding: 0.5rem 0 0.75rem;
+      border-top: 1px solid rgb(var(--gray-light));
+    }
+
+    .mobile-menu[hidden] {
+      display: none;
+    }
+
+    .mobile-menu .nav-link {
+      padding: 0.5rem 0;
+      border-bottom-width: 2px;
     }
   }
 </style>
