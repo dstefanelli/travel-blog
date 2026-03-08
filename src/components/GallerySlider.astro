@@ -32,9 +32,12 @@ const sliderImages = [...(images ?? []), ...(gallery ?? [])]
 
 {
   sliderImages.length > 0 && (
-    <section class="gallery-slider" aria-label="Galería">
+    <section
+      class="mx-auto mt-6 w-[min(980px,calc(100%-2em))] px-4 [--slider-accent:rgb(var(--accent))] [--slider-accent-soft:color-mix(in_srgb,var(--slider-accent)_30%,white)]"
+      aria-label="Galería"
+    >
       <swiper-container
-        class="js-gallery-swiper"
+        class="js-gallery-swiper w-full pb-6 [--swiper-navigation-color:var(--slider-accent)] [--swiper-pagination-color:var(--slider-accent)] [--swiper-pagination-bullet-inactive-color:var(--slider-accent-soft)] [--swiper-pagination-bullet-inactive-opacity:1]"
         init="false"
         slides-per-view="1"
         space-between="12"
@@ -46,14 +49,18 @@ const sliderImages = [...(images ?? []), ...(gallery ?? [])]
         autoplay={autoplay ? "true" : undefined}
       >
         {sliderImages.map((img) => (
-          <swiper-slide>
+          <swiper-slide class="grid">
             <div class="swiper-zoom-container">
-              <img src={img.url} alt={img.alt} />
+              <img
+                class="block h-full w-full rounded-xl object-cover [box-shadow:var(--box-shadow)]"
+                src={img.url}
+                alt={img.alt}
+              />
             </div>
           </swiper-slide>
         ))}
       </swiper-container>
-      {caption ? <p class="caption">{caption}</p> : null}
+      {caption ? <p class="mt-1.5 text-center text-[0.95rem] text-[rgb(var(--gray))]">{caption}</p> : null}
     </section>
   )
 }
@@ -79,42 +86,3 @@ const sliderImages = [...(images ?? []), ...(gallery ?? [])]
       }
     });
 </script>
-
-<style>
-  .gallery-slider {
-    --slider-accent: rgb(var(--accent));
-    --slider-accent-soft: color-mix(in srgb, var(--slider-accent) 30%, white);
-    width: min(980px, calc(100% - 2em));
-    margin: 1.5em auto 0;
-    padding: 0 1em;
-  }
-
-  .gallery-slider :global(swiper-container) {
-    --swiper-navigation-color: var(--slider-accent);
-    --swiper-pagination-color: var(--slider-accent);
-    --swiper-pagination-bullet-inactive-color: var(--slider-accent-soft);
-    --swiper-pagination-bullet-inactive-opacity: 1;
-    width: 100%;
-    padding-bottom: 24px;
-  }
-
-  .gallery-slider :global(swiper-slide) {
-    display: grid;
-  }
-
-  .gallery-slider :global(swiper-slide img) {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: var(--box-shadow);
-  }
-
-  .caption {
-    margin: 0.35rem 0 0;
-    color: rgb(var(--gray));
-    font-size: 0.95rem;
-    text-align: center;
-  }
-</style>

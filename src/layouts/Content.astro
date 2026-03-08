@@ -21,70 +21,41 @@ const uiLang: AppLang = normalizeLang(lang) ?? "es";
 <html lang={lang}>
   <head>
     <BaseHead title={title} description={description} />
-    <style>
-      main {
-        width: calc(100% - 2em);
-        max-width: 100%;
-        margin: 0;
-      }
-      .hero-image {
-        width: 100%;
-        margin: 0 auto;
-        padding: 0 1em;
-      }
-      .hero-image img {
-        display: block;
-        width: min(1020px, 100%);
-        height: auto;
-        margin: 0 auto;
-        border-radius: 12px;
-        box-shadow: var(--box-shadow);
-      }
-      .prose {
-        width: 720px;
-        max-width: calc(100% - 2em);
-        margin: auto;
-        padding: 1em;
-        color: rgb(var(--gray-dark));
-      }
-      .title {
-        margin-bottom: 1em;
-        padding: 1em 0;
-        text-align: center;
-        line-height: 1.1;
-      }
-      .title h1 {
-        margin: 0 0 0.5em 0;
-      }
-      .description {
-        color: rgb(var(--gray));
-        font-style: italic;
-        margin: 0;
-      }
-    </style>
   </head>
 
   <body>
     <Header lang={uiLang} />
-    <main>
+    <main class="m-0 w-full max-w-full">
       <article>
         {
           image && (
-            <div class="hero-image">
-              {
-                isLocalImage ? (
-                  <Image src={image as ImageMetadata} alt={title} />
-                ) : (
-                  <img src={image as string} alt={title} />
-                )
-              }
+            <div class="mx-auto w-full px-4">
+              {isLocalImage ? (
+                <Image
+                  class="mx-auto block h-auto w-[min(1020px,100%)] rounded-xl [box-shadow:var(--box-shadow)]"
+                  src={image as ImageMetadata}
+                  alt={title}
+                />
+              ) : (
+                <img
+                  class="mx-auto block h-auto w-[min(1020px,100%)] rounded-xl [box-shadow:var(--box-shadow)]"
+                  src={image as string}
+                  alt={title}
+                />
+              )}
             </div>
           )
         }
-        <div class="prose">
-          <div class="title">
-            <h1>{title}</h1>
-            {description && <p class="description">{description}</p>}
+        <div
+          class="prose mx-auto w-[720px] max-w-[calc(100%-2em)] p-4 text-[rgb(var(--gray-dark))]"
+        >
+          <div class="mb-4 py-4 text-center leading-[1.1]">
+            <h1 class="text-3xl sm:text-5xl mb-2 mt-0">{title}</h1>
+            {
+              description && (
+                <p class="m-0 italic text-[rgb(var(--gray))]">{description}</p>
+              )
+            }
             <hr />
           </div>
           <slot />

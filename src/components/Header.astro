@@ -11,24 +11,44 @@ type Props = {
 
 const { lang: providedLang } = Astro.props;
 const lang =
-  providedLang ?? resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
+  providedLang ??
+  resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
 const withLang = (path: string) => withRouteLangPrefix(path, lang);
 ---
 
-<header>
-  <nav class="site-nav" aria-label="Principal">
-    <h2 class="brand"><a href={withLang("/")}>{SITE_TITLE}</a></h2>
+<header
+  class="m-0 bg-white px-4 py-1.5 shadow-[0_2px_8px_rgba(var(--black),0.05)] max-[720px]:px-[0.8rem] max-[720px]:py-[0.35rem]"
+>
+  <nav
+    class="flex min-h-14 items-center justify-between gap-4"
+    aria-label="Principal"
+  >
+    <h2 class="m-0 text-2xl">
+      <a class="text-[rgb(var(--gray-dark))] no-underline" href={withLang("/")}
+        >{SITE_TITLE}</a
+      >
+    </h2>
 
-    <div class="desktop-links">
-      <HeaderLink class="nav-link" href={withLang("/")}>Home</HeaderLink>
-      <HeaderLink class="nav-link" href={withLang("/blog/")}>Blog</HeaderLink>
-      <div class="lang-slot">
+    <div class="flex items-center gap-2 max-[720px]:hidden">
+      <HeaderLink
+        class="border-b-[3px] border-b-transparent px-[0.7rem] py-[0.6rem] leading-none text-[rgb(var(--gray-dark))] no-underline [&.active]:border-b-(--accent) [&.active]:no-underline"
+        href={withLang("/")}
+      >
+        Home
+      </HeaderLink>
+      <HeaderLink
+        class="border-b-[3px] border-b-transparent px-[0.7rem] py-[0.6rem] leading-none text-[rgb(var(--gray-dark))] no-underline [&.active]:border-b-(--accent) [&.active]:no-underline"
+        href={withLang("/blog/")}
+      >
+        Blog
+      </HeaderLink>
+      <div class="flex items-center">
         <LanguageSwitcher lang={lang} />
       </div>
     </div>
 
     <button
-      class="menu-toggle"
+      class="hidden cursor-pointer items-center justify-center rounded-full border border-[rgb(var(--gray-light))] bg-white px-[0.85rem] py-[0.55rem] text-[0.85rem] leading-none font-bold text-[rgb(var(--gray-dark))] max-[720px]:inline-flex"
       type="button"
       aria-expanded="false"
       aria-controls="mobile-menu"
@@ -38,10 +58,24 @@ const withLang = (path: string) => withRouteLangPrefix(path, lang);
     </button>
   </nav>
 
-  <div id="mobile-menu" class="mobile-menu" hidden>
-    <HeaderLink class="nav-link" href={withLang("/")}>Home</HeaderLink>
-    <HeaderLink class="nav-link" href={withLang("/blog/")}>Blog</HeaderLink>
-    <div class="lang-slot">
+  <div
+    id="mobile-menu"
+    class="border-t border-t-[rgb(var(--gray-light))] pb-3 pt-2 max-[720px]:grid max-[720px]:gap-2"
+    hidden
+  >
+    <HeaderLink
+      class="border-b-2 border-b-transparent py-2 leading-none text-[rgb(var(--gray-dark))] no-underline [&.active]:border-b-[var(--accent)] [&.active]:no-underline"
+      href={withLang("/")}
+    >
+      Home
+    </HeaderLink>
+    <HeaderLink
+      class="border-b-2 border-b-transparent py-2 leading-none text-[rgb(var(--gray-dark))] no-underline [&.active]:border-b-[var(--accent)] [&.active]:no-underline"
+      href={withLang("/blog/")}
+    >
+      Blog
+    </HeaderLink>
+    <div class="flex items-center">
       <LanguageSwitcher lang={lang} />
     </div>
   </div>
@@ -78,104 +112,3 @@ const withLang = (path: string) => withRouteLangPrefix(path, lang);
     if (event.matches) closeMenu();
   });
 </script>
-
-<style>
-  header {
-    margin: 0;
-    padding: 0.4rem 1rem;
-    background: white;
-    box-shadow: 0 2px 8px rgba(var(--black), 5%);
-  }
-
-  .site-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    min-height: 3.5rem;
-  }
-
-  .brand {
-    margin: 0;
-    font-size: 1em;
-  }
-
-  .brand a,
-  .brand a.active {
-    text-decoration: none;
-    color: rgb(var(--gray-dark));
-  }
-
-  .desktop-links {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .lang-slot {
-    display: flex;
-    align-items: center;
-  }
-
-  .nav-link {
-    padding: 0.6rem 0.7rem;
-    color: rgb(var(--gray-dark));
-    border-bottom: 3px solid transparent;
-    text-decoration: none;
-    line-height: 1;
-  }
-
-  .nav-link.active {
-    border-bottom-color: var(--accent);
-    text-decoration: none;
-  }
-
-  .menu-toggle {
-    display: none;
-    border: 1px solid rgb(var(--gray-light));
-    border-radius: 999px;
-    background: #fff;
-    color: rgb(var(--gray-dark));
-    font-size: 0.85rem;
-    font-weight: 700;
-    line-height: 1;
-    padding: 0.55rem 0.85rem;
-    cursor: pointer;
-  }
-
-  .mobile-menu {
-    display: none;
-  }
-
-  @media (max-width: 720px) {
-    header {
-      padding: 0.35rem 0.8rem;
-    }
-
-    .desktop-links {
-      display: none;
-    }
-
-    .menu-toggle {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .mobile-menu {
-      display: grid;
-      gap: 0.5rem;
-      padding: 0.5rem 0 0.75rem;
-      border-top: 1px solid rgb(var(--gray-light));
-    }
-
-    .mobile-menu[hidden] {
-      display: none;
-    }
-
-    .mobile-menu .nav-link {
-      padding: 0.5rem 0;
-      border-bottom-width: 2px;
-    }
-  }
-</style>

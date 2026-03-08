@@ -7,10 +7,17 @@ import BaseHead from "../../components/BaseHead.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
-import { resolveLang, toCmsLocale, withRouteLangPrefix } from "../../lib/locale";
+import {
+  resolveLang,
+  toCmsLocale,
+  withRouteLangPrefix,
+} from "../../lib/locale";
 
 const page = Number(Astro.url.searchParams.get("page") ?? "1");
-const lang = resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
+const lang = resolveLang(
+  Astro.url,
+  Astro.request.headers.get("accept-language"),
+);
 const pageSize = 10;
 const fetchPostsByLang = (queryLang: "es" | "de" | "en") =>
   apiGet<PostEntity[]>("/api/posts", {
@@ -34,86 +41,39 @@ const pageCount = meta?.pagination?.pageCount ?? 1;
 <html>
   <head>
     <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-    <style>
-      main {
-        width: 960px;
-      }
-      .heading {
-        margin-bottom: 1em;
-        text-align: center;
-      }
-      ul {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 2rem;
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-      }
-      ul li * {
-        text-decoration: none;
-        transition: 0.2s ease;
-      }
-      ul li img {
-        margin-bottom: 0.5rem;
-        border-radius: 12px;
-        width: 100%;
-      }
-      ul li a {
-        display: block;
-      }
-      .title {
-        margin: 0;
-        color: rgb(var(--black));
-        line-height: 1;
-      }
-      .date {
-        margin: 0;
-        color: rgb(var(--gray));
-      }
-      .excerpt {
-        margin: 0;
-        color: rgb(var(--black));
-        line-height: 1.25;
-      }
-      ul a:hover img {
-        box-shadow: var(--box-shadow);
-      }
-      @media (max-width: 720px) {
-        ul {
-          grid-template-columns: 1fr;
-          gap: 0.5em;
-        }
-        ul li {
-          text-align: center;
-        }
-      }
-    </style>
   </head>
   <body>
     <Header lang={lang} />
-    <main>
+    <main class="w-[960px]">
       <section>
-        <h1 class="heading">Últimas Aventuras 🚀</h1>
-        <ul>
+        <h1 class="mb-4 text-center">Últimas Aventuras 🚀</h1>
+        <ul
+          class="m-0 grid list-none grid-cols-2 gap-8 p-0 max-[720px]:grid-cols-1 max-[720px]:gap-2"
+        >
           {
             data.map((p) => (
-              <li>
+              <li class="max-[720px]:text-center">
                 <a
+                  class="group block no-underline transition duration-200 ease-in-out"
                   href={`${withRouteLangPrefix(`/blog/${p.slug}/`, lang)}${
-                    p.documentId ? `?doc=${encodeURIComponent(p.documentId)}` : ""
+                    p.documentId
+                      ? `?doc=${encodeURIComponent(p.documentId)}`
+                      : ""
                   }`}
                 >
                   {mediaUrl(p.coverImage?.formats?.medium?.url) && (
                     <Image
+                      class="mb-2 w-full rounded-xl group-hover:[box-shadow:var(--box-shadow)]"
                       src={mediaUrl(p.coverImage?.formats?.medium?.url)!}
                       alt={p.coverImage?.alternativeText || p.title}
                       width={300}
                       height={200}
                     />
                   )}
-                  <h4>{p.title}</h4>
-                  <span class="date">
+                  <h4 class="text-lg m-0 leading-none text-[rgb(var(--black))]">
+                    {p.title}
+                  </h4>
+                  <span class="m-0 text-[rgb(var(--gray))]">
                     <FormattedDate
                       date={
                         p.travelDate
@@ -122,17 +82,25 @@ const pageCount = meta?.pagination?.pageCount ?? 1;
                       }
                     />
                   </span>
-                  {p.excerpt ? <p class="excerpt">{p.excerpt}</p> : null}
+                  {p.excerpt ? (
+                    <p class="m-0 leading-tight text-[rgb(var(--black))]">
+                      {p.excerpt}
+                    </p>
+                  ) : null}
                 </a>
               </li>
             ))
           }
         </ul>
 
-        <nav style="display:flex; gap:12px; margin-top:24px;">
+        <nav class="mt-6 flex gap-3">
           {
             page > 1 ? (
-              <a href={`${withRouteLangPrefix("/blog/", lang)}?page=${page - 1}`}>← Prev</a>
+              <a
+                href={`${withRouteLangPrefix("/blog/", lang)}?page=${page - 1}`}
+              >
+                ← Prev
+              </a>
             ) : (
               <span />
             )
@@ -140,7 +108,11 @@ const pageCount = meta?.pagination?.pageCount ?? 1;
           <span>Página {page} / {pageCount}</span>
           {
             page < pageCount ? (
-              <a href={`${withRouteLangPrefix("/blog/", lang)}?page=${page + 1}`}>Next →</a>
+              <a
+                href={`${withRouteLangPrefix("/blog/", lang)}?page=${page + 1}`}
+              >
+                Next →
+              </a>
             ) : (
               <span />
             )

@@ -9,7 +9,10 @@ import { resolveLang, toCmsLocale, toDateLang } from "../../lib/locale";
 
 const { slug } = Astro.params;
 if (!slug) throw new Error("Slug parameter is required");
-const lang = resolveLang(Astro.url, Astro.request.headers.get("accept-language"));
+const lang = resolveLang(
+  Astro.url,
+  Astro.request.headers.get("accept-language"),
+);
 const dateLang = toDateLang(lang);
 const docParam = Astro.url.searchParams.get("doc") ?? undefined;
 
@@ -20,20 +23,27 @@ const fetchPostByLang = (queryLang: "es" | "de" | "en") =>
     locale: toCmsLocale(queryLang),
     "populate[coverImage][populate]": "*",
     "populate[contenZone][on][sections.rich-text][populate]": "*",
-    "populate[contenZone][on][sections.slider][populate][images][populate]": "*",
-    "populate[contenZone][on][sections.picture][populate][image][populate]": "*",
+    "populate[contenZone][on][sections.slider][populate][images][populate]":
+      "*",
+    "populate[contenZone][on][sections.picture][populate][image][populate]":
+      "*",
     "populate[contenZone][on][sections.markdown][populate]": "*",
   });
 
-const fetchPostByDocumentId = (documentId: string, queryLang: "es" | "de" | "en") =>
+const fetchPostByDocumentId = (
+  documentId: string,
+  queryLang: "es" | "de" | "en",
+) =>
   apiGet<PostEntity[]>("/api/posts", {
     "filters[documentId][$eq]": documentId,
     "pagination[pageSize]": "1",
     locale: toCmsLocale(queryLang),
     "populate[coverImage][populate]": "*",
     "populate[contenZone][on][sections.rich-text][populate]": "*",
-    "populate[contenZone][on][sections.slider][populate][images][populate]": "*",
-    "populate[contenZone][on][sections.picture][populate][image][populate]": "*",
+    "populate[contenZone][on][sections.slider][populate][images][populate]":
+      "*",
+    "populate[contenZone][on][sections.picture][populate][image][populate]":
+      "*",
     "populate[contenZone][on][sections.markdown][populate]": "*",
   });
 
@@ -106,7 +116,15 @@ function richTextToHtml(blocks: RichTextBlock[]) {
       switch (block.type) {
         case "heading": {
           const level = Math.min(Math.max(block.level ?? 2, 1), 6);
-          return `<h${level}>${text}</h${level}>`;
+          const classLevel = [
+            "text-5xl",
+            "text-4xl",
+            "text-3xl",
+            "text-2xl",
+            "text-xl",
+            "text-lg",
+          ][level - 1];
+          return `<h${level} class="${classLevel} font-bold">${text}</h${level}>`;
         }
         case "list": {
           const tag = block.format === "ordered" ? "ol" : "ul";
